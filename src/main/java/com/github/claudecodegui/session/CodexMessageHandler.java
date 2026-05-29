@@ -642,7 +642,12 @@ public class CodexMessageHandler implements MessageCallback {
         }
 
         callbackHandler.notifyContentDelta(content);
-        callbackHandler.notifyMessageUpdate(state.getMessages());
+        // Match Claude streaming behavior: keep live text on the delta channel.
+        // Sending the full message list for every Codex token saturates JCEF and
+        // makes the UI appear non-streaming even though deltas are arriving.
+        if (!isStreaming) {
+            callbackHandler.notifyMessageUpdate(state.getMessages());
+        }
     }
 
     /**

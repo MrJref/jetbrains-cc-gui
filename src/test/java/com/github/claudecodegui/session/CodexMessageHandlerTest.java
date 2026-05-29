@@ -103,7 +103,7 @@ public class CodexMessageHandlerTest {
         assertEquals(1, callback.streamEndCount);
         assertFalse(state.isBusy());
         assertFalse(state.isLoading());
-        assertTrue(callback.messageUpdateCount >= 2);
+        assertEquals(1, callback.messageUpdateCount);
         assertEquals("done", callback.lastMessages.get(callback.lastMessages.size() - 1).content);
     }
 
