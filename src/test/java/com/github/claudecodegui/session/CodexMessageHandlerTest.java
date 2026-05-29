@@ -103,8 +103,29 @@ public class CodexMessageHandlerTest {
         assertEquals(1, callback.streamEndCount);
         assertFalse(state.isBusy());
         assertFalse(state.isLoading());
-        assertTrue(callback.messageUpdateCount >= 2);
+        assertEquals(1, callback.messageUpdateCount);
         assertEquals("done", callback.lastMessages.get(callback.lastMessages.size() - 1).content);
+    }
+
+    @Test
+    public void streamingContentDeltaDoesNotPushFullMessageSnapshotUntilStreamEnds() {
+        SessionState state = new SessionState();
+
+        CallbackHandler callbackHandler = new CallbackHandler();
+        RecordingCallback callback = new RecordingCallback();
+        callbackHandler.setCallback(callback);
+
+        CodexMessageHandler handler = new CodexMessageHandler(state, callbackHandler);
+        handler.onMessage("stream_start", "");
+        handler.onMessage("content_delta", "hello");
+        handler.onMessage("content_delta", " world");
+
+        assertEquals(List.of("hello", " world"), callback.contentDeltas);
+        assertEquals(0, callback.messageUpdateCount);
+
+        handler.onMessage("stream_end", "");
+        assertEquals(1, callback.messageUpdateCount);
+        assertEquals("hello world", callback.lastMessages.get(callback.lastMessages.size() - 1).content);
     }
 
     @Test

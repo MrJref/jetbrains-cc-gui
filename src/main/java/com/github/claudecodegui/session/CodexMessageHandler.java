@@ -642,7 +642,15 @@ public class CodexMessageHandler implements MessageCallback {
         }
 
         callbackHandler.notifyContentDelta(content);
-        callbackHandler.notifyMessageUpdate(state.getMessages());
+        // During streaming, the lightweight delta channel drives character-by-character
+        // rendering. Pushing the full message list on every delta can block JCEF and
+        // delay visible text until the turn completes.
+        //
+        // If a delta arrives after stream_end (rare but possible with asynchronous
+        // delivery), still send the full snapshot so the final message is not lost.
+        if (!isStreaming) {
+            callbackHandler.notifyMessageUpdate(state.getMessages());
+        }
     }
 
     /**
